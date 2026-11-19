@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HOLMER Montage-QM-Portal</title>
+<style>
+  :root{
+    --gruen:#5da32c; --gruen-dunkel:#477c21;
+    --dunkel:#1c2733; --dunkel-2:#243444;
+    --hintergrund:#eef1f4; --karte:#ffffff; --linie:#d7dde3;
+    --text:#1c2733; --text-zweit:#5b6b7a;
+    --rot:#c0392b; --rot-hell:#fdecea;
+    --gelb:#e2a400; --gelb-hell:#fdf6e0;
+    --blau:#2270b8; --blau-hell:#e7f0f9;
+    --grau-hell:#f3f5f7;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--hintergrund); color:var(--text); font-size:15px;
+  }
+  header{
+    background:var(--dunkel); color:#fff; padding:0 24px;
+    display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+  }
+  .logo{
+    display:flex; align-items:center; gap:10px; padding:14px 0;
+  }
+  .logo-marke{
+    background:var(--gruen); color:#fff; font-weight:800; letter-spacing:1px;
+    padding:6px 12px; border-radius:4px; font-size:15px;
+  }
+  .logo span.untertitel{color:#b9c6d2; font-size:13px;}
+  nav{display:flex; gap:2px; margin-left:auto; flex-wrap:wrap;}
+  nav button{
+    background:none; border:none; color:#c8d3dc; padding:16px 14px; font-size:14px;
+    cursor:pointer; border-bottom:3px solid transparent;
+  }
+  nav button:hover{color:#fff;}
+  nav button.aktiv{color:#fff; border-bottom-color:var(--gruen); font-weight:600;}
+  .kopf-aktionen{display:flex; gap:8px; padding:10px 0;}
+  .kopf-aktionen button{
+    background:var(--dunkel-2); color:#c8d3dc; border:1px solid #35485c;
+    border-radius:4px; padding:6px 10px; font-size:12px; cursor:pointer;
+  }
+  .kopf-aktionen button:hover{color:#fff; border-color:var(--gruen);}
+  main{max-width:1180px; margin:0 auto; padding:24px 20px 60px;}
+  h1{font-size:20px; margin-bottom:16px;}
+  h2{font-size:16px; margin:0 0 12px;}
+  .karten-reihe{display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px; margin-bottom:22px;}
+  .kpi{
+    background:var(--karte); border:1px solid var(--linie); border-radius:8px;
+    padding:16px 18px;
+  }
+  .kpi .zahl{font-size:30px; font-weight:700;}
+  .kpi .titel{font-size:12px; color:var(--text-zweit); text-transform:uppercase; letter-spacing:.5px; margin-top:2px;}
+  .kpi.gruen .zahl{color:var(--gruen-dunkel);}
+  .kpi.rot .zahl{color:var(--rot);}
+  .kpi.gelb .zahl{color:var(--gelb);}
+  .kpi.blau .zahl{color:var(--blau);}
+  .karte{
+    background:var(--karte); border:1px solid var(--linie); border-radius:8px;
+    padding:18px 20px; margin-bottom:20px;
+  }
+  .zwei-spalten{display:grid; grid-template-columns:1fr 1fr; gap:20px;}
+  @media(max-width:860px){.zwei-spalten{grid-template-columns:1fr;}}
+  table{width:100%; border-collapse:collapse; font-size:14px;}
+  th{
+    text-align:left; font-size:12px; text-transform:uppercase; letter-spacing:.4px;
+    color:var(--text-zweit); border-bottom:2px solid var(--linie); padding:8px 10px;
+  }
+  td{padding:9px 10px; border-bottom:1px solid var(--linie); vertical-align:top;}
+  tr:last-child td{border-bottom:none;}
+  tr.klickbar{cursor:pointer;}
+  tr.klickbar:hover td{background:var(--grau-hell);}
+  .badge{
+    display:inline-block; border-radius:20px; padding:2px 10px; font-size:12px; font-weight:600;
+  }
+  .badge.offen{background:var(--gelb-hell); color:#8a6d00;}
+  .badge.in-arbeit{background:var(--blau-hell); color:var(--blau);}
+  .badge.abgeschlossen{background:#e8f5e3; color:var(--gruen-dunkel);}
+  .badge.blockiert{background:var(--rot-hell); color:var(--rot);}
+  .badge.neu{background:var(--gelb-hell); color:#8a6d00;}
+  .badge.in-analyse{background:var(--blau-hell); color:var(--blau);}
+  .badge.achtd{background:#efe3f7; color:#6f3a99;}
+  .badge.behoben{background:#e8f5e3; color:var(--gruen-dunkel);}
+  .badge.kritisch{background:var(--rot); color:#fff;}
+  .badge.major{background:var(--gelb); color:#fff;}
+  .badge.minor{background:var(--grau-hell); color:var(--text-zweit);}
+  .filter-leiste{display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap;}
+  select,input[type=text],input[type=date],textarea{
+    border:1px solid var(--linie); border-radius:4px; padding:7px 10px; font-size:14px;
+    font-family:inherit; background:#fff; color:var(--text);
+  }
+  textarea{width:100%; resize:vertical;}
+  button.primaer{
+    background:var(--gruen); color:#fff; border:none; border-radius:4px;
+    padding:8px 16px; font-size:14px; cursor:pointer; font-weight:600;
+  }
+  button.primaer:hover{background:var(--gruen-dunkel);}
+  button.sekundaer{
+    background:#fff; color:var(--text); border:1px solid var(--linie); border-radius:4px;
+    padding:7px 14px; font-size:14px; cursor:pointer;
+  }
+  button.sekundaer:hover{border-color:var(--text-zweit);}
+  button.mini{
+    background:var(--grau-hell); border:1px solid var(--linie); border-radius:4px;
+    padding:4px 10px; font-size:12px; cursor:pointer;
+  }
+  .fortschritt{
+    background:var(--grau-hell); border-radius:10px; height:10px; overflow:hidden; margin-top:6px;
+  }
+  .fortschritt > div{height:100%; background:var(--gruen); transition:width .3s;}
+  .stations-zeile{margin-bottom:14px;}
+  .stations-kopf{display:flex; justify-content:space-between; font-size:13px; margin-bottom:2px;}
+  .checkitem{
+    display:flex; align-items:flex-start; gap:10px; padding:10px 8px;
+    border-bottom:1px solid var(--linie);
+  }
+  .checkitem:last-child{border-bottom:none;}
+  .checkitem input[type=checkbox]{margin-top:3px; width:16px; height:16px;}
+  .checkitem.text-mangel label{text-decoration:line-through; color:var(--rot);}
+  .checkitem.text-ok label{color:var(--text-zweit);}
+  dialog{
+    border:1px solid var(--linie); border-radius:8px; padding:22px; width:min(560px,92vw);
+    box-shadow:0 10px 40px rgba(0,0,0,.25);
+  }
+  dialog::backdrop{background:rgba(12,20,28,.55);}
+  .form-gitter{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  .form-gitter label{display:flex; flex-direction:column; gap:4px; font-size:13px; color:var(--text-zweit);}
+  .form-gitter .voll{grid-column:1 / -1;}
+  .dialog-fuesse{display:flex; justify-content:flex-end; gap:10px; margin-top:18px;}
+  .acht-d{display:grid; gap:10px;}
+  .acht-d label{display:flex; flex-direction:column; gap:4px; font-size:13px; color:var(--text-zweit);}
+  .return{color:var(--blau); background:none; border:none; cursor:pointer; font-size:14px; padding:0; margin-bottom:14px;}
+  .return:hover{text-decoration:underline;}
+  .leerer-hinweis{color:var(--text-zweit); padding:24px; text-align:center; font-size:14px;}
+  .mini-chart{display:flex; align-items:flex-end; gap:10px; height:120px; padding-top:8px;}
+  .mini-chart .balken{flex:1; display:flex; flex-direction:column; justify-content:flex-end; height:100%; gap:4px; text-align:center; font-size:11px; color:var(--text-zweit);}
+  .mini-chart .balken > div:first-child{background:var(--gruen); border-radius:3px 3px 0 0; min-height:2px;}
+  footer{max-width:1180px; margin:0 auto; padding:0 20px 30px; color:var(--text-zweit); font-size:12px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-marke">HOLMER</div>
+    <span class="untertitel">Montage-QM-Portal · Endmontage</span>
+  </div>
+  <nav id="navigation"></nav>
+  <div class="kopf-aktionen">
+    <button type="button" id="btn-export" title="Alle Daten als JSON exportieren">Export JSON</button>
+    <button type="button" id="btn-reset" title="Beispieldaten wiederherstellen">Beispieldaten zurücksetzen</button>
+  </div>
+</header>
+
+<main id="inhalt"></main>
+<footer>HOLMER Montage-QM-Portal · Demodaten, lokal gespeichert (localStorage) · Version 1.0</footer>
+
+<dialog id="dialog">
+  <div id="dialog-inhalt"></div>
+</dialog>
+
+<script>
+"use strict";
+
+/* ---------- Konfiguration ---------- */
+
+const STATIONEN = [
+  "Vorbereitung",
+  "Fahrwerk & Antrieb",
+  "Hubwerk & Aufbau",
+  "Kabine",
+  "Elektrik & Hydraulik",
+  "Endabnahme"
+];
+
+const MASCHINEN = [
+  "Terra Dos T4-40",
+  "Terra Dos T4-30",
+  "Terra Felis 3",
+  "Tema V75"
+];
+
+const CHECKLISTEN = {
+  "Vorbereitung": [
+    "Maschinenpapiere und Konfigurationsliste liegen vor",
+    "Fahrwerksvermessung Protokoll ausgefüllt",
+    "Alle Komponentenwerke verbaut und Vollständigkeit geprüft",
+    "Bauteile ohne Transportschäden"
+  ],
+  "Fahrwerk & Antrieb": [
+    "Räder mit vorgeschriebenem Anzugsmoment befestigt",
+    "Niveauregulierung Funktion und Endanschläge",
+    "Getriebeöl-Füllstand im Sollbereich",
+    "Antriebswellen spielfrei und gesichert"
+  ],
+  "Hubwerk & Aufbau": [
+    "Hubwerk Zylinder dicht, ohne Lecköl",
+    "Rüstkappe und Trennvorrichtung befestigt",
+    "Alle Abdeckungen und Verkleidungen aufgesetzt",
+    "Anbauteile nach Konfiguration montiert"
+  ],
+  "Kabine": [
+    "Scheibenheizung und Wisch-/Waschanlage in Ordnung",
+    "Bedienpult: alle Taster und Schalter geprüft",
+    "Sitz und Gurte auf Funktion",
+    "Kabinendichtigung visuell geprüft"
+  ],
+  "Elektrik & Hydraulik": [
+    "Hydraulikleitungen auf Leckage und Scheuerstellen geprüft",
+    "Steckverbindungen verriegelt und gesichert",
+    "CAN-Bus Fehlerspeicher leer",
+    "Beleuchtungsanlage komplett in Ordnung (Straßen zulassungsrelevant)"
+  ],
+  "Endabnahme": [
+    "Probefahrt mit Last, Bremsen und Lenkung",
+    "Schutzvorrichtungen und Warnhinweise vollständig",
+    "Dokumentation: Prüfprotokoll und Übergabepapier",
+    "Reinigung und Korrosionsschutz abgeschlossen"
+  ]
+};
+
+const STATUS_AUFTRAG = ["Offen", "In Arbeit", "Abgeschlossen", "Blockiert"];
+const STATUS_FEHLER = ["Neu", "In Analyse", "8D läuft", "Behoben", "Abgeschlossen"];
+const STUFEN = ["Kritisch", "Major", "Minor"];
+
+/* ---------- Beispieldaten ---------- */
+
+function beispieldaten() {
+  return {
+    pruefauftraege: [
+      { id: "PA-2026-041", maschine: "Terra Dos T4-40", baunummer: "CH26-0142", station: "Endabnahme",
+        verantwortlich: "M. Bayer", status: "In Arbeit", prioritaet: "Hoch", faellig: "2026-11-24",
+        schritte: [{ name: "Probefahrt mit Last", ok: true }, { name: "Dokumentation Übergabe", ok: false }] },
+      { id: "PA-2026-042", maschine: "Terra Felis 3", baunummer: "CH26-0139", station: "Kabine",
+        verantwortlich: "S. Krüger", status: "Offen", prioritaet: "Mittel", faellig: "2026-11-26", schritte: [] },
+      { id: "PA-2026-043", maschine: "Terra Dos T4-30", baunummer: "CH26-0136", station: "Elektrik & Hydraulik",
+        verantwortlich: "A. Sommer", status: "Blockiert", prioritaet: "Hoch", faellig: "2026-11-23", schritte: [] },
+      { id: "PA-2026-044", maschine: "Tema V75", baunummer: "CH26-0145", station: "Fahrwerk & Antrieb",
+        verantwortlich: "M. Bayer", status: "Abgeschlossen", prioritaet: "Niedrig", faellig: "2026-11-21",
+        schritte: [{ name: "Radmuttern Anzugsmoment", ok: true }, { name: "Niveauregulierungtest", ok: true }] },
+      { id: "PA-2026-045", maschine: "Terra Felis 3", baunummer: "CH26-0147", station: "Vorbereitung",
+        verantwortlich: "J. Reiter", status: "Offen", prioritaet: "Mittel", faellig: "2026-11-27", schritte: [] },
+      { id: "PA-2026-046", maschine: "Terra Dos T4-40", baunummer: "CH26-0149", station: "Hubwerk & Aufbau",
+        verantwortlich: "S. Krüger", status: "In Arbeit", prioritaet: "Mittel", faellig: "2026-11-25", schritte: [] }
+    ],
+    fehlermeldungen: [
+      { id: "FM-2026-012", baunummer: "CH26-0136", station: "Elektrik & Hydraulik",
+        beschreibung: "Hydraulikanschluss Ladepumpe leckt im Probefahrzeug", stufe: "Kritisch",
+        status: "8D läuft", datum: "2026-11-18", meldender: "A. Sommer" },
+      { id: "FM-2026-013", baunummer: "CH26-0142", station: "Kabine",
+        beschreibung: "Klemmverbindung CAN-Bus im Katalogschacht nicht verriegelt", stufe: "Major",
+        status: "In Analyse", datum: "2026-11-19", meldender: "M. Bayer" },
+      { id: "FM-2026-014", baunummer: "CH26-0145", station: "Fahrwerk & Antrieb",
+        beschreibung: "Schutzkappe an Getriebeentlüftung fehlt", stufe: "Minor",
+        status: "Behoben", datum: "2026-11-20", meldender: "M. Bayer" },
+      { id: "FM-2026-015", baunummer: "CH26-0149", station: "Hubwerk & Aufbau",
+        beschreibung: "Riss in Schlauchführung nach 30 Hubzyklen im Belastungstest", stufe: "Major",
+        status: "Neu", datum: "2026-11-21", meldender: "S. Krüger" },
+      { id: "FM-2026-016", baunummer: "CH26-0142", station: "Endabnahme",
+        beschreibung: "Beleuchtung Heck: Positionslicht dauerhaft aktiv", stufe: "Major",
+        status: "In Analyse", datum: "2026-11-21", meldender: "M. Bayer" }
+    ],
+    achtD: {
+      "FM-2026-012": {
+        d1: "Team: VerschießElektro-Hydraulik (Leitung), Montage Station 5, QM, VEM-Zulieferer",
+        d2: "Leckage an Ladepumpenanschluss CH26-0136, Tropfverlust 3 Tropfen/min nach 20 min Probelauf",
+        d3: "Ansatz nachgezogen und mit Drehmoment auf Sollwert gebracht, Maschine gibt Freigabe unter Beobachtung",
+        d4: "5-Why: Leckage → unzureichendes Anzugsmoment → Werkzeug am Platz zeigte veraltetes Sollmoment → Sollmomentenliste V3.2 nicht am Stationsterminal ausgerollt",
+        d5: "Sollmomentenliste wird bereits beim ersten Arbeitsgang am Stationsterminal automatisch bereitgestellt, Montageleitung prüft Drehmomentwerkzeuge wöchentlich",
+        d6: "Nach Ziehversuch und 60-min-Dauerlauf kein Lecköl mehr feststellbar, Wiederholungsmessung dokumentiert",
+        d7: "Rollout der Sollmomentenliste auf alle Stationen mit VEM-Anschlüssen, SOP.workflow angepasst, Zulieferer informiert",
+        d8: "Abschluss nach Wirksamkeitsüberprüfung Ende KW 48 (QM-Leitung)"
+      },
+      "FM-2026-013": { d1: "", d2: "", d3: "", d4: "", d5: "", d6: "", d7: "", d8: "" },
+      "FM-2026-014": { d1: "", d2: "", d3: "", d4: "", d5: "", d6: "", d7: "", d8: "" },
+      "FM-2026-015": { d1: "", d2: "", d3: "", d4: "", d5: "", d6: "", d7: "", d8: "" },
+      "FM-2026-016": { d1: "", d2: "", d3: "", d4: "", d5: "", d6: "", d7: "", d8: "" }
+    },
+    checklisten: {}
+  };
+}
+
+/* ---------- Speicher ---------- */
+
+const SPEICHER_SCHLUESSEL = "holmer-montage-qm-v1";
+let daten;
+
+function laden() {
+  try {
+    const raw = localStorage.getItem(SPEICHER_SCHLUESSEL);
+    if (raw) { daten = JSON.parse(raw); return; }
+  } catch (e) { /* localStorage nicht verfügbar, dann nur im Speicher */ }
+  daten = beispieldaten();
+}
+
+function speichern() {
+  try { localStorage.setItem(SPEICHER_SCHLUESSEL, JSON.stringify(daten)); } catch (e) { /* ignorieren */ }
+}
+
+/* ---------- Hilfsfunktionen ---------- */
+
+const $ = (sel) => document.querySelector(sel);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g,
+  (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const badStatus = (s) => {
+  const klassen = {
+    "offen": "offen", "in arbeit": "in-arbeit", "abgeschlossen": "abgeschlossen",
+    "blockiert": "blockiert", "neu": "neu", "in analyse": "in-analyse",
+    "8d läuft": "achtd", "behoben": "behoben", "kritisch": "kritisch",
+    "major": "major", "minor": "minor"
+  };
+  return "badge " + (klassen[String(s ?? "").toLowerCase()] || "minor");
+};
+
+function naechsteId(ziel, praefix) {
+  const nummern = daten[ziel]
+    .map((x) => parseInt(String(x.id).split("-").pop(), 10))
+    .filter((n) => !isNaN(n));
+  return praefix + String(nummern.length ? Math.max(...nummern) + 1 : 1).padStart(3, "0");
+}
+
+/* ---------- Navigation ---------- */
+
+const TABS = [
+  { id: "dashboard", titel: "Dashboard" },
+  { id: "pruefauftraege", titel: "Prüfaufträge" },
+  { id: "checklisten", titel: "Checklisten" },
+  { id: "fehler", titel: "Fehler & 8D" }
+];
+let aktiverTab = "dashboard";
+
+function navigationRendern() {
+  $("#navigation").innerHTML = TABS.map((t) =>
+    `<button type="button" data-tab="${t.id}" class="${t.id === aktiverTab ? "aktiv" : ""}">${t.titel}</button>`
+  ).join("");
+}
+
+$("#navigation").addEventListener("click", (ev) => {
+  const btn = ev.target.closest("button[data-tab]");
+  if (!btn) return;
+  aktiverTab = btn.dataset.tab;
+  navigationRendern();
+  anzeigen();
+});
+
+/* ---------- Dashboard ---------- */
+
+function dashboardAnzeigen() {
+  const offen = daten.pruefauftraege.filter((p) => p.status === "Offen" || p.status === "In Arbeit").length;
+  const blockiert = daten.pruefauftraege.filter((p) => p.status === "Blockiert").length;
+  const fehlerOffen = daten.fehlermeldungen.filter((f) => f.status !== "Behoben" && f.status !== "Abgeschlossen").length;
+  const achtdLaufend = daten.fehlermeldungen.filter((f) => f.status === "8D läuft").length;
+  const kritisch = daten.fehlermeldungen.filter((f) => f.stufe === "Kritisch" && f.status !== "Abgeschlossen");
+
+  const jeStation = STATIONEN.map((st) => {
+    const offenStation = daten.pruefauftraege.filter((p) => p.station === st && p.status !== "Abgeschlossen").length;
+    const fehlerSt = daten.fehlermeldungen.filter((f) => f.station === st && f.status !== "Abgeschlossen").length;
+    return { st, offenStation, fehlerSt, max: Math.max(offenStation + fehlerSt, 1) };
+  });
+  const maxTotal = Math.max(...jeStation.map((s) => s.offenStation + s.fehlerSt), 1);
+
+  $("#inhalt").innerHTML = `
+    <h1>Qualitätsübersicht Endmontage</h1>
+    <div class="karten-reihe">
+      <div class="kpi gelb"><div class="zahl">${offen}</div><div class="titel">Offene Prüfaufträge</div></div>
+      <div class="kpi rot"><div class="zahl">${blockiert}</div><div class="titel">Blockierte Aufträge</div></div>
+      <div class="kpi rot"><div class="zahl">${fehlerOffen}</div><div class="titel">Offene Fehlermeldungen</div></div>
+      <div class="kpi blau"><div class="zahl">${achtdLaufend}</div><div class="titel">8D-Prozesse in Bearbeitung</div></div>
+    </div>
+
+    <div class="zwei-spalten">
+      <div class="karte">
+        <h2>Jede Montagestation: Aufträge und offene Fehler</h2>
+        ${jeStation.map((s) => `
+          <div class="stations-zeile">
+            <div class="stations-kopf">
+              <span><strong>${esc(s.st)}</strong>${s.offenStation ? ` · ${s.offenStation} Auftrag(e)` : " · keine offenen Aufträge"}${s.fehlerSt ? ` · ${s.fehlerSt} Fehler` : ""}</span>
+              <span>${s.offenStation + s.fehlerSt}</span>
+            </div>
+            <div class="fortschritt"><div style="width:${Math.round(((s.offenStation + s.fehlerSt) / maxTotal) * 100)}%; background:${s.fehlerSt > 0 ? "#c0392b" : "var(--gruen)"}"></div></div>
+          </div>
+        `).join("")}
+      </div>
+
+      <div class="karte">
+        <h2>Fehlerschwerpunkte offen (nach Station)</h2>
+        <div class="mini-chart">
+          ${jeStation.map((s) => `
+            <div class="balken">
+              <div style="height:${Math.round((s.fehlerSt / maxTotal) * 100)}%"></div>
+              <span>${s.fehlerSt}</span>
+              <span>${esc(s.st.split(" ")[0])}</span>
+            </div>
+          `).join("")}
+        </div>
+      </div>
+    </div>
+
+    <div class="karte">
+      <h2>Kritische Fehler (ohne Abschluss)</h2>
+      ${kritisch.length ? `
+        <table>
+          <thead><tr><th>Fehler</th><th>Baunummer</th><th>Station</th><th>Beschreibung</th><th>Status</th></tr></thead>
+          <tbody>
+            ${kritisch.map((f) => `
+              <tr class="klickbar" data-fehler="${f.id}">
+                <td><strong>${esc(f.id)}</strong></td><td>${esc(f.baunummer)}</td><td>${esc(f.station)}</td>
+                <td>${esc(f.beschreibung)}</td><td><span class="${badStatus(f.status)}">${esc(f.status)}</span></td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>` : `<div class="leerer-hinweis">Keine kritischen Fehler offen.</div>`}
+    </div>
+
+    <div class="karte">
+      <h2>Fällige Prüfaufträge (nächste 7 Tage)</h2>
+      <table>
+        <thead><tr><th>Auftrag</th><th>Maschine</th><th>Baunummer</th><th>Station</th><th>Verantwortlich</th><th>Status</th><th>Fällig</th></tr></thead>
+        <tbody>
+          ${daten.pruefauftraege
+            .filter((p) => p.status !== "Abgeschlossen")
+            .sort((a, b) => a.faellig.localeCompare(b.faellig))
+            .map((p) => `
+              <tr class="klickbar" data-auftrag="${p.id}">
+                <td><strong>${esc(p.id)}</strong></td><td>${esc(p.maschine)}</td><td>${esc(p.baunummer)}</td>
+                <td>${esc(p.station)}</td><td>${esc(p.verantwortlich)}</td>
+                <td><span class="${badStatus(p.status)}">${esc(p.status)}</span></td><td>${esc(p.faellig)}</td>
+              </tr>
+            `).join("")}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+/* ---------- Prüfaufträge ---------- */
+
+let filterStatus = "";
+let filterStation = "";
+let offenerAuftrag = null;
+
+function pruefauftraegeAnzeigen() {
+  if (offenerAuftrag) { auftragDetail(offenerAuftrag); return; }
+  const liste = daten.pruefauftraege.filter((p) =>
+    (!filterStatus || p.status === filterStatus) && (!filterStation || p.station === filterStation));
+
+  $("#inhalt").innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; gap:12px; flex-wrap:wrap;">
+      <h1 style="margin:0;">Prüfaufträge</h1>
+      <button type="button" class="primaer" id="btn-neuer-auftrag">+ Neuer Prüfauftrag</button>
+    </div>
+    <div class="karte">
+      <div class="filter-leiste">
+        <select id="filter-status"><option value="">Status: alle</option>
+          ${STATUS_AUFTRAG.map((s) => `<option ${s === filterStatus ? "selected" : ""}>${s}</option>`).join("")}
+        </select>
+        <select id="filter-station"><option value="">Station: alle</option>
+          ${STATIONEN.map((s) => `<option ${s === filterStation ? "selected" : ""}>${s}</option>`).join("")}
+        </select>
+        <span style="align-self:center; color:var(--text-zweit); font-size:13px;">${liste.length} Auftrag/Einträge</span>
+      </div>
+      ${liste.length ? `
+      <table>
+        <thead><tr><th>Auftrag</th><th>Maschine</th><th>Baunummer</th><th>Station</th><th>Verantwortlich</th><th>Priorität</th><th>Status</th><th>Fällig</th><th>Schritte</th></tr></thead>
+        <tbody>${liste.map((p) => `
+          <tr class="klickbar" data-auftrag="${p.id}">
+            <td><strong>${esc(p.id)}</strong></td><td>${esc(p.maschine)}</td><td>${esc(p.baunummer)}</td>
+            <td>${esc(p.station)}</td><td>${esc(p.verantwortlich)}</td>
+            <td><span class="${badStatus(p.prioritaet === "Hoch" ? "Kritisch" : p.prioritaet === "Mittel" ? "Major" : "Minor")}">${esc(p.prioritaet)}</span></td>
+            <td><span class="${badStatus(p.status)}">${esc(p.status)}</span></td>
+            <td>${esc(p.faellig)}</td>
+            <td>${p.schritte.filter((s) => s.ok).length}/${p.schritte.length || "–"}</td>
+          </tr>`).join("")}
+        </tbody>
+      </table>` : `<div class="leerer-hinweis">Keine Prüfaufträge zu den Filterbedingungen.</div>`}
+    </div>
+  `;
+
+  $("#btn-neuer-auftrag").addEventListener("click", auftragFormular);
+  $("#filter-status").addEventListener("change", (ev) => { filterStatus = ev.target.value; pruefauftraegeAnzeigen(); });
+  $("#filter-station").addEventListener("change", (ev) => { filterStation = ev.target.value; pruefauftraegeAnzeigen(); });
+}
+
+function auftragFormular() {
+  const dlg = $("#dialog");
+  $("#dialog-inhalt").innerHTML = `
+    <h2>Neuen Prüfauftrag anlegen</h2>
+    <form id="form-auftrag">
+      <div class="form-gitter" style="margin-top:14px;">
+        <label>Maschine
+          <select name="maschine">${MASCHINEN.map((m) => `<option>${m}</option>`).join("")}</select>
+        </label>
+        <label>Baunummer <input name="baunummer" type="text" required placeholder="z. B. CH26-0150"></label>
+        <label>Station
+          <select name="station">${STATIONEN.map((s) => `<option>${s}</option>`).join("")}</select>
+        </label>
+        <label>Verantwortlich <input name="verantwortlich" type="text" required placeholder="Name"></label>
+        <label>Priorität
+          <select name="prioritaet"><option>Hoch</option><option selected>Mittel</option><option>Niedrig</option></select>
+        </label>
+        <label>Fällig bis <input name="faellig" type="date" required></label>
+        <label class="voll">Prüfschritte (einer pro Zeile, optional)
+          <textarea name="schritte" rows="4" placeholder="z. B. Anzugsmoment Achskörper prüfen"></textarea>
+        </label>
+      </div>
+      <div class="dialog-fuesse">
+        <button type="button" class="sekundaer" id="dlg-abbrechen">Abbrechen</button>
+        <button type="submit" class="primaer">Auftrag anlegen</button>
+      </div>
+    </form>
+  `;
+  dlg.showModal();
+  $("#dlg-abbrechen").addEventListener("click", () => dlg.close());
+  $("#form-auftrag").addEventListener("submit", (ev) => {
+    ev.preventDefault();
+    const fd = new FormData(ev.target);
+    const schritte = String(fd.get("schritte") || "").split("\n").map((s) => s.trim()).filter(Boolean)
+      .map((name) => ({ name, ok: false }));
+    const nummern = daten.pruefauftraege.map((p) => parseInt(p.id.split("-").pop(), 10));
+    const id = "PA-2026-" + String(Math.max(...nummern) + 1).padStart(3, "0");
+    daten.pruefauftraege.push({
+      id, maschine: fd.get("maschine"), baunummer: fd.get("baunummer").trim(),
+      station: fd.get("station"), verantwortlich: fd.get("verantwortlich").trim(),
+      status: "Offen", prioritaet: fd.get("prioritaet"), faellig: fd.get("faellig"), schritte
+    });
+    speichern();
+    dlg.close();
+    offenerAuftrag = id;
+    pruefauftraegeAnzeigen();
+  });
+}
+
+function auftragDetail(auftragId) {
+  const p = daten.pruefauftraege.find((x) => x.id === auftragId);
+  if (!p) { offenerAuftrag = null; pruefauftraegeAnzeigen(); return; }
+  const erledigt = p.schritte.filter((s) => s.ok).length;
+  const quote = p.schritte.length ? Math.round((erledigt / p.schritte.length) * 100) : 0;
+  const fehlerZuBaunummer = daten.fehlermeldungen.filter((f) => f.baunummer === p.baunummer);
+
+  $("#inhalt").innerHTML = `
+    <button type="button" class="return" id="btn-zurueck">&larr; zurück zur Liste</button>
+    <h1>Prüfauftrag ${esc(p.id)} · ${esc(p.maschine)} (${esc(p.baunummer)})</h1>
+    <div class="zwei-spalten">
+      <div class="karte">
+        <h2>Stammdaten</h2>
+        <table>
+          <tbody>
+            <tr><td>Station</td><td>${esc(p.station)}</td></tr>
+            <tr><td>Verantwortlich</td><td>${esc(p.verantwortlich)}</td></tr>
+            <tr><td>Priorität</td><td><span class="${badStatus(p.prioritaet === "Hoch" ? "Kritisch" : p.prioritaet === "Mittel" ? "Major" : "Minor")}">${esc(p.prioritaet)}</span></td></tr>
+            <tr><td>Fällig</td><td>${esc(p.faellig)}</td></tr>
+            <tr><td>Status</td><td>
+              <select id="detail-status">${STATUS_AUFTRAG.map((s) => `<option ${s === p.status ? "selected" : ""}>${s}</option>`).join("")}</select>
+            </td></tr>
+          </tbody>
+        </table>
+        <div style="margin-top:14px;">
+          <div class="stations-kopf"><span>Prüfschritte erledigt</span><span>${erledigt}/${p.schritte.length} (${quote} %)</span></div>
+          <div class="fortschritt"><div style="width:${quote}%"></div></div>
+        </div>
+      </div>
+      <div class="karte">
+        <h2>Prüfschritte</h2>
+        ${p.schritte.length ? p.schritte.map((s, i) => `
+          <div class="checkitem ${s.ok ? "text-ok" : ""}">
+            <input type="checkbox" data-schritt="${i}" ${s.ok ? "checked" : ""}>
+            <label>${esc(s.name)}</label>
+          </div>
+        `).join("") : `<div class="leerer-hinweis">Noch keine Prüfschritte erfasst.</div>`}
+        <form id="form-schritt" style="display:flex; gap:8px; margin-top:12px;">
+          <input type="text" name="name" placeholder="Neuen Prüfschritt hinzufügen..." required>
+          <button type="submit" class="mini">Hinzufügen</button>
+        </form>
+      </div>
+    </div>
+    <div class="karte">
+      <h2>Fehlermeldungen zur Maschine (${esc(p.baunummer)})</h2>
+      ${fehlerZuBaunummer.length ? `
+        <table>
+          <thead><tr><th>Fehler</th><th>Station</th><th>Beschreibung</th><th>Stufe</th><th>Status</th></tr></thead>
+          <tbody>${fehlerZuBaunummer.map((f) => `
+            <tr class="klickbar" data-fehler="${f.id}">
+              <td><strong>${esc(f.id)}</strong></td><td>${esc(f.station)}</td><td>${esc(f.beschreibung)}</td>
+              <td><span class="${badStatus(f.stufe)}">${esc(f.stufe)}</span></td>
+              <td><span class="${badStatus(f.status)}">${esc(f.status)}</span></td>
+            </tr>`).join("")}
+          </tbody>
+        </table>` : `<div class="leerer-hinweis">Keine Fehlermeldungen zu dieser Baunummer.</div>`}
+    </div>
+  `;
+
+  $("#btn-zurueck").addEventListener("click", () => { offenerAuftrag = null; pruefauftraegeAnzeigen(); });
+  $("#detail-status").addEventListener("change", (ev) => {
+    p.status = ev.target.value; speichern(); auftragDetail(p.id);
+  });
+  $("#inhalt").querySelectorAll("input[data-schritt]").forEach((cb) => {
+    cb.addEventListener("change", () => { p.schritte[+cb.dataset.schritt].ok = cb.checked; speichern(); auftragDetail(p.id); });
+  });
+  $("#form-schritt").addEventListener("submit", (ev) => {
+    ev.preventDefault();
+    const name = ev.target.name.value.trim();
+    if (name) { p.schritte.push({ name, ok: false }); speichern(); auftragDetail(p.id); }
+  });
+}
+
+/* ---------- Checklisten ---------- */
+
+let clStation = STATIONEN[0];
+let clBaunummer = "";
+
+function checklistenAnzeigen() {
+  if (!clBaunummer) {
+    const alle = [...new Set(daten.pruefauftraege.map((p) => p.baunummer))];
+    if (alle.length) { clBaunummer = alle.sort()[alle.length - 1]; }
+  }
+  const baunummern = [...new Set(daten.pruefauftraege.map((p) => p.baunummer))].sort();
+  const schluessel = clBaunummer + "|" + clStation;
+  const zustand = daten.checklisten[schluessel] || {};
+  const items = CHECKLISTEN[clStation] || [];
+  const geprueft = items.filter((it) => zustand[it]).length;
+  const quote = items.length ? Math.round((geprueft / items.length) * 100) : 0;
+
+  $("#inhalt").innerHTML = `
+    <h1>Montage-Checklisten</h1>
+    <div class="karte">
+      <div class="filter-leiste">
+        <label style="font-size:13px; color:var(--text-zweit); display:flex; align-items:center; gap:6px;">Baunummer
+          <input type="text" id="cl-baunummer" list="baunummern-liste" value="${esc(clBaunummer)}" placeholder="z. B. CH26-0142">
+          <datalist id="baunummern-liste">${baunummern.map((b) => `<option value="${esc(b)}">`).join("")}</datalist>
+        </label>
+        <select id="cl-station">${STATIONEN.map((s) => `<option ${s === clStation ? "selected" : ""}>${s}</option>`).join("")}</select>
+        <span style="align-self:center; font-size:13px; color:var(--text-zweit);">${geprueft}/${items.length} geprüft (${quote} %)</span>
+      </div>
+      <div class="fortschritt" style="margin-bottom:16px;"><div style="width:${quote}%"></div></div>
+      ${items.map((it) => `
+        <div class="checkitem ${zustand[it] === "ok" ? "text-ok" : ""}">
+          <input type="checkbox" data-item="${esc(it)}" ${zustand[it] === "ok" ? "checked" : ""}>
+          <label style="flex:1;">${esc(it)}
+            ${zustand[it] === "mangel" ? ' <span class="badge kritisch">Mangel gemeldet</span>' : ""}
+          </label>
+          <button type="button" class="mini" data-mangel="${esc(it)}" ${zustand[it] === "mangel" ? "disabled" : ""}>Mangel melden</button>
+        </div>
+      `).join("")}
+    </div>
+  `;
+
+  $("#cl-station").addEventListener("change", (ev) => { clStation = ev.target.value; checklistenAnzeigen(); });
+  $("#cl-baunummer").addEventListener("change", (ev) => {
+    clBaunummer = ev.target.value.trim(); checklistenAnzeigen();
+  });
+  $("#inhalt").querySelectorAll("input[data-item]").forEach((cb) => {
+    cb.addEventListener("change", () => {
+      if (!daten.checklisten[schluessel]) daten.checklisten[schluessel] = {};
+      daten.checklisten[schluessel][cb.dataset.item] = cb.checked ? "ok" : null;
+      speichern(); checklistenAnzeigen();
+    });
+  });
+  $("#inhalt").querySelectorAll("button[data-mangel]").forEach((btn) => {
+    btn.addEventListener("click", () => fehlerAusCheckliste(btn.dataset.mangel));
+  });
+}
+
+function fehlerAusCheckliste(punkt) {
+  if (!clBaunummer) { alert("Bitte zuerst eine Baunummer eintragen."); return; }
+  const dlg = $("#dialog");
+  $("#dialog-inhalt").innerHTML = `
+    <h2>Fehlermeldung anlegen</h2>
+    <form id="form-fehler">
+      <div class="form-gitter" style="margin-top:14px;">
+        <label class="voll">Punkt auf der Checkliste
+          <input type="text" name="punkt" readonly value="${esc(punkt)}">
+        </label>
+        <label>Baunummer <input name="baunummer" type="text" required value="${esc(clBaunummer)}"></label>
+        <label>Station
+          <select name="station">${STATIONEN.map((s) => `<option ${s === clStation ? "selected" : ""}>${s}</option>`).join("")}</select>
+        </label>
+        <label>Schweregrad
+          <select name="stufe"><option>Minor</option><option selected>Major</option><option>Kritisch</option></select>
+        </label>
+        <label>Gemeldet von <input name="meldender" type="text" required placeholder="Name"></label>
+        <label class="voll">Beschreibung / Beobachtung
+          <textarea name="beschreibung" rows="3" required>${esc(punkt)}: </textarea>
+        </label>
+      </div>
+      <div class="dialog-fuesse">
+        <button type="button" class="sekundaer" id="dlg-abbrechen">Abbrechen</button>
+        <button type="submit" class="primaer">Fehlermeldung speichern</button>
+      </div>
+    </form>
+  `;
+  dlg.showModal();
+  $("#dlg-abbrechen").addEventListener("click", () => dlg.close());
+  $("#form-fehler").addEventListener("submit", (ev) => {
+    ev.preventDefault();
+    const fd = new FormData(ev.target);
+    const id = naechsteId("fehlermeldungen", "FM-2026-");
+    daten.fehlermeldungen.push({
+      id, baunummer: fd.get("baunummer").trim(), station: fd.get("station"),
+      beschreibung: fd.get("beschreibung").trim(), stufe: fd.get("stufe"),
+      status: "Neu", datum: new Date().toISOString().slice(0, 10), meldender: fd.get("meldender").trim()
+    });
+    daten.achtD[id] = { d1: "", d2: "", d3: "", d4: "", d5: "", d6: "", d7: "", d8: "" };
+    const schluessel = clBaunummer + "|" + clStation;
+    if (!daten.checklisten[schluessel]) daten.checklisten[schluessel] = {};
+    daten.checklisten[schluessel][punkt] = "mangel";
+    speichern();
+    dlg.close();
+    checklistenAnzeigen();
+  });
+}
+
+/* ---------- Fehler & 8D ---------- */
+
+let fehlerFilter = "";
+let offenerFehler = null;
+
+function fehlerAnzeigen() {
+  if (offenerFehler) { fehlerDetail(offenerFehler); return; }
+  const liste = daten.fehlermeldungen.filter((f) => !fehlerFilter || f.status === fehlerFilter);
+
+  $("#inhalt").innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; gap:12px; flex-wrap:wrap;">
+      <h1 style="margin:0;">Fehlermeldungen &amp; 8D-Reporte</h1>
+      <button type="button" class="primaer" id="btn-neuer-fehler">+ Neue Fehlermeldung</button>
+    </div>
+    <div class="karte">
+      <div class="filter-leiste">
+        <select id="fehler-filter"><option value="">Status: alle</option>
+          ${STATUS_FEHLER.map((s) => `<option ${s === fehlerFilter ? "selected" : ""}>${s}</option>`).join("")}
+        </select>
+        <span style="align-self:center; color:var(--text-zweit); font-size:13px;">${liste.length} Meldung(en)</span>
+      </div>
+      ${liste.length ? `
+      <table>
+        <thead><tr><th>Fehler</th><th>Datum</th><th>Baunummer</th><th>Station</th><th>Beschreibung</th><th>Stufe</th><th>Status</th><th>Gemeldet</th></tr></thead>
+        <tbody>${liste.map((f) => `
+          <tr class="klickbar" data-fehler="${f.id}">
+            <td><strong>${esc(f.id)}</strong></td><td>${esc(f.datum)}</td><td>${esc(f.baunummer)}</td>
+            <td>${esc(f.station)}</td><td>${esc(f.beschreibung.length > 60 ? f.beschreibung.slice(0, 60) + "…" : f.beschreibung)}</td>
+            <td><span class="${badStatus(f.stufe)}">${esc(f.stufe)}</span></td>
+            <td><span class="${badStatus(f.status)}">${esc(f.status)}</span></td>
+            <td>${esc(f.meldender)}</td>
+          </tr>`).join("")}
+        </tbody>
+      </table>` : `<div class="leerer-hinweis">Keine Fehlermeldungen zu den Filterbedingungen.</div>`}
+    </div>
+  `;
+
+  $("#btn-neuer-fehler").addEventListener("click", fehlerFormularFrei);
+  $("#fehler-filter").addEventListener("change", (ev) => { fehlerFilter = ev.target.value; fehlerAnzeigen(); });
+}
+
+function fehlerFormularFrei() {
+  const dlg = $("#dialog");
+  $("#dialog-inhalt").innerHTML = `
+    <h2>Fehlermeldung anlegen</h2>
+    <form id="form-fehler">
+      <div class="form-gitter" style="margin-top:14px;">
+        <label>Baunummer <input name="baunummer" type="text" required placeholder="z. B. CH26-0150"></label>
+        <label>Station
+          <select name="station">${STATIONEN.map((s) => `<option>${s}</option>`).join("")}</select>
+        </label>
+        <label>Schweregrad
+          <select name="stufe"><option>Minor</option><option selected>Major</option><option>Kritisch</option></select>
+        </label>
+        <label>Gemeldet von <input name="meldender" type="text" required placeholder="Name"></label>
+        <label class="voll">Beschreibung / Beobachtung
+          <textarea name="beschreibung" rows="3" required></textarea>
+        </label>
+      </div>
+      <div class="dialog-fuesse">
+        <button type="button" class="sekundaer" id="dlg-abbrechen">Abbrechen</button>
+        <button type="submit" class="primaer">Fehlermeldung speichern</button>
+      </div>
+    </form>
+  `;
+  dlg.showModal();
+  $("#dlg-abbrechen").addEventListener("click", () => dlg.close());
+  $("#form-fehler").addEventListener("submit", (ev) => {
+    ev.preventDefault();
+    const fd = new FormData(ev.target);
+    const id = naechsteId("fehlermeldungen", "FM-2026-");
+    daten.fehlermeldungen.push({
+      id, baunummer: fd.get("baunummer").trim(), station: fd.get("station"),
+      beschreibung: fd.get("beschreibung").trim(), stufe: fd.get("stufe"),
+      status: "Neu", datum: new Date().toISOString().slice(0, 10), meldender: fd.get("meldender").trim()
+    });
+    daten.achtD[id] = { d1: "", d2: "", d3: "", d4: "", d5: "", d6: "", d7: "", d8: "" };
+    speichern();
+    dlg.close();
+    fehlerAnzeigen();
+  });
+}
+
+function fehlerDetail(fehlerId) {
+  const f = daten.fehlermeldungen.find((x) => x.id === fehlerId);
+  if (!f) { offenerFehler = null; fehlerAnzeigen(); return; }
+  const d = daten.achtD[fehlerId] || (daten.achtD[fehlerId] = { d1: "", d2: "", d3: "", d4: "", d5: "", d6: "", d7: "", d8: "" });
+  const adBezeichnung = {
+    d1: "D1 – Team bilden", d2: "D2 – Problembeschreibung", d3: "D3 – Sofortmaßnahmen",
+    d4: "D4 – Ursachenanalyse", d5: "D5 – Korrekturmaßnahmen", d6: "D6 – Wirksamkeit nachweisen",
+    d7: "D7 – Präventive Maßnahmen", d8: "D8 – Team-Anerkennung / Abschluss"
+  };
+
+  $("#inhalt").innerHTML = `
+    <button type="button" class="return" id="btn-zurueck">&larr; zurück zur Liste</button>
+    <h1>Fehlermeldung ${esc(f.id)} · ${esc(f.baunummer)} · ${esc(f.station)}</h1>
+    <div class="karte">
+      <div class="form-gitter">
+        <label>Baunummer / Datum: <strong>${esc(f.baunummer)}</strong> · ${esc(f.datum)}</label>
+        <label>Gemeldet von: <strong>${esc(f.meldender)}</strong></label>
+        <label>Status
+          <select id="fehler-status">${STATUS_FEHLER.map((s) => `<option ${s === f.status ? "selected" : ""}>${s}</option>`).join("")}</select>
+        </label>
+        <label>Schweregrad
+          <select id="fehler-stufe">${STUFEN.map((s) => `<option ${s === f.stufe ? "selected" : ""}>${s}</option>`).join("")}</select>
+        </label>
+        <label class="voll">Beschreibung
+          <textarea id="fehler-beschreibung" rows="2">${esc(f.beschreibung)}</textarea>
+        </label>
+      </div>
+    </div>
+    <div class="karte">
+      <h2>8D-Report</h2>
+      <p style="color:var(--text-zweit); font-size:13px; margin-bottom:12px;">Eingaben werden beim Verlassen des Feldes automatisch gespeichert.</p>
+      <div class="acht-d">
+        ${["d1","d2","d3","d4","d5","d6","d7","d8"].map((k) => `
+          <label>${adBezeichnung[k]}
+            <textarea rows="2" data-d="${k}">${esc(d[k])}</textarea>
+          </label>`).join("")}
+      </div>
+    </div>
+  `;
+
+  $("#btn-zurueck").addEventListener("click", () => { offenerFehler = null; fehlerAnzeigen(); });
+  $("#fehler-status").addEventListener("change", (ev) => { f.status = ev.target.value; speichern(); });
+  $("#fehler-stufe").addEventListener("change", (ev) => { f.stufe = ev.target.value; speichern(); });
+  $("#fehler-beschreibung").addEventListener("change", (ev) => { f.beschreibung = ev.target.value.trim(); speichern(); fehlerDetail(f.id); });
+  $("#inhalt").querySelectorAll("textarea[data-d]").forEach((ta) => {
+    ta.addEventListener("change", () => { d[ta.dataset.d] = ta.value.trim(); speichern(); });
+  });
+}
+
+/* ---------- Export & Reset ---------- */
+
+$("#btn-export").addEventListener("click", () => {
+  const blob = new Blob([JSON.stringify(daten, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "holmer-montage-qm-" + new Date().toISOString().slice(0, 10) + ".json";
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+
+$("#btn-reset").addEventListener("click", () => {
+  if (confirm("Alle Eingaben löschen und Beispieldaten wiederherstellen?")) {
+    try { localStorage.removeItem(SPEICHER_SCHLUESSEL); } catch (e) { /* ignorieren */ }
+    location.reload();
+  }
+});
+
+/* ---------- Tabellenklicks global ---------- */
+
+$("#inhalt").addEventListener("click", (ev) => {
+  auftragKlick: {
+    const tr = ev.target.closest("tr[data-auftrag]");
+    if (tr && aktiverTab !== "pruefauftraege") { offenerAuftrag = tr.dataset.auftrag; aktiverTab = "pruefauftraege"; navigationRendern(); anzeigen(); break auftragKlick; }
+    if (tr && aktiverTab === "pruefauftraege") { offenerAuftrag = tr.dataset.auftrag; pruefauftraegeAnzeigen(); break auftragKlick; }
+  }
+  const tf = ev.target.closest("tr[data-fehler]");
+  if (tf) { offenerFehler = tf.dataset.fehler; aktiverTab = "fehler"; navigationRendern(); anzeigen(); }
+});
+
+/* ---------- Start ---------- */
+
+function anzeigen() {
+  if (aktiverTab === "dashboard") dashboardAnzeigen();
+  else if (aktiverTab === "pruefauftraege") pruefauftraegeAnzeigen();
+  else if (aktiverTab === "checklisten") checklistenAnzeigen();
+  else if (aktiverTab === "fehler") fehlerAnzeigen();
+}
+
+laden();
+navigationRendern();
+anzeigen();
+</script>
+</body>
+</html>

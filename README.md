@@ -34,7 +34,7 @@ python3 -m http.server 8080
 ## Projektstruktur
 
 ```
-index.html              Portal (noch PR: Feature-Branch)
+index.html              Single-File-Portal
 docs/
   ANFORDERUNGEN.md      Anforderungen und Prozessbeschreibung QM-Portal
 ```
